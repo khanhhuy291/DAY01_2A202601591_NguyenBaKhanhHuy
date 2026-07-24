@@ -30,6 +30,8 @@ mỗi lần trung bình ~350 token đầu ra.
 **Ước tính GPT-4o đắt hơn GPT-4o-mini bao nhiêu lần cho workload này? Nêu một
 trường hợp GPT-4o xứng đáng với chi phí và một trường hợp nên dùng mini:**
 > *Câu trả lời của bạn*
+Khi chạy test ở Part 1 với câu:"Hãy kể cho tôi một sự thật thú vị về Việt Nam.". Thì GPT-4o hết $0.001097 đắt hơn GPT-4o-mini hết $0.002338 chỉ gấp đôi nhưng Theo bảng giá hiện hành, GPT-4o thường đắt hơn GPT-4o-mini khoảng 30 lần cho input và 25 lần cho output
+GPT-4o xứng đáng với chi phí khi dùng để suy luận logic phức tạp, viết code chuyên sâu hoặc xử lý ngữ cảnh đa phương tiện.Còn GPT-4o-mini hoàn toàn phù hợp và tối ưu chi phí cho các tác vụ đơn giản như phân loại văn bản, tóm tắt đoạn chat, hoặc chatbot giao tiếp thông thường.
 
 ---
 
@@ -44,6 +46,7 @@ Gọi `chat_with_system_prompt` hai lần với cùng câu hỏi
 **Hai phản hồi khác nhau như thế nào (độ dài, từ vựng, ví dụ)? System prompt
 ảnh hưởng đến hành vi model ra sao?** (3–4 câu)
 > *Câu trả lời của bạn*
+Phản hồi của "giáo viên" rất ngắn gọn, dùng ví dụ gần gũi như "cuốn sổ cái chung của cả lớp không ai được tẩy xóa" và hoàn toàn không có từ ngữ chuyên ngành. Phản hồi của "chuyên gia" lại dài hơn hẳn, chứa đầy thuật ngữ như "sổ cái phân tán", "hàm băm mã hóa", "cơ chế đồng thuận". Điều này cho thấy System prompt có sức mạnh định hình hoàn toàn vai trò, giọng điệu, tệp từ vựng và đối tượng mục tiêu của mô hình.
 
 ### Câu 2.2 — tiktoken vs đếm từ
 Chọn một đoạn văn tiếng Việt ~100 từ. So sánh số token theo `count_tokens`
@@ -52,6 +55,7 @@ Chọn một đoạn văn tiếng Việt ~100 từ. So sánh số token theo `co
 **Hai con số chênh nhau bao nhiêu phần trăm? Vì sao tiếng Việt thường tốn
 nhiều token hơn tiếng Anh cùng độ dài?**
 > *Câu trả lời của bạn*
+Số token thực tế đo bằng tiktoken cao hơn khoảng 50-80% so với ước lượng số từ / 0.75 . Tiếng Việt tốn nhiều token hơn vì các tokenizer (như BPE) được huấn luyện chủ yếu trên bộ dữ liệu tiếng Anh; do đó, nhiều từ tiếng Việt không nằm trong từ điển và bị tokenizer cắt vụn thành nhiều sub-word hoặc từng ký tự rời rạc để mã hóa.
 
 ---
 
@@ -61,13 +65,14 @@ nhiều token hơn tiếng Anh cùng độ dài?**
 **Streaming quan trọng nhất trong trường hợp nào, và khi nào thì
 non-streaming lại phù hợp hơn?** (1 đoạn văn)
 > *Câu trả lời của bạn*
+Streaming đặc biệt quan trọng trong các ứng dụng có giao diện người dùng trực tiếp (như chatbot web/app) vì nó giảm thiểu Time to First Token (TTFT), giúp người dùng đọc kết quả ngay lập tức thay vì nhìn màn hình chờ trống không, tạo cảm giác phản hồi nhanh. Ngược lại, non-streaming phù hợp hơn cho các luồng xử lý ngầm (background jobs) như sinh báo cáo tự động, phân tích log, hoặc khi hệ thống cần parse toàn bộ kết quả đầu ra dưới dạng chuẩn (như JSON) trước khi gọi tiếp một API khác.
 
 ### Câu 3.2 — Vì sao backoff theo cấp số nhân?
 **So với delay cố định (ví dụ luôn chờ 1 giây), exponential backoff có lợi
 thế gì khi API bị quá tải? Điều gì xảy ra nếu hàng nghìn client cùng retry
 với delay cố định giống nhau?**
 > *Câu trả lời của bạn*
-
+Exponential backoff giúp giãn cách thời gian giữa các lần thử lại (1s, 2s, 4s...), nhờ đó giảm áp lực ngay lập tức lên server đang bị lỗi. Nếu hàng nghìn client cùng retry với một delay cố định 1 giây, chúng sẽ tạo ra hiện tượng "Thundering Herd" (cơn lốc request), khiến server vừa mới kịp hồi phục lại lập tức bị đánh sập bởi lượng truy cập ồ ạt ập đến cùng một lúc.
 ---
 
 ## Block 4 — Mini-Project (trả lời sau Checkpoint 4)
@@ -77,13 +82,14 @@ với delay cố định giống nhau?**
 thích 1–2 lựa chọn từ ngữ quan trọng trong prompt (ví dụ: vì sao yêu cầu
 "trả lời ngắn gọn", vì sao chỉ định ngôn ngữ...):**
 > *Câu trả lời của bạn*
+Tôi chọn persona là một "Trợ lý Kỹ sư Backend và AI". System prompt: "Bạn là một Senior Software Engineer chuyên về Python, FastAPI và các mô hình Deep Learning. Hãy trả lời ngắn gọn, cung cấp code snippet có gán type hint rõ ràng và ưu tiên kiến trúc microservices. Bỏ qua các phần giải thích thừa." Yêu cầu "trả lời ngắn gọn và bỏ qua giải thích thừa" giúp tiết kiệm token và tăng tốc độ đọc hiểu; việc "ưu tiên microservices và type hint" định hướng mô hình sinh ra mã nguồn có thể áp dụng trực tiếp vào các dự án hệ thống phân tán.
 
 ### Câu 4.2 — Hạn chế & cải thiện
 **Trợ lý của bạn hiện có hạn chế lớn nhất là gì (ví dụ: history chỉ 3 lượt,
 không có bộ nhớ dài hạn, không kiểm duyệt nội dung...)? Đề xuất một cải
 thiện cụ thể và mô tả ngắn cách triển khai:**
 > *Câu trả lời của bạn*
-
+Hạn chế lớn nhất là trợ lý hiện không có bộ nhớ dài hạn, không thể nhớ được các file code cũ, cấu hình database hay bối cảnh dự án qua các phiên làm việc khác nhau. Để cải thiện, tôi sẽ tích hợp hệ thống Retrieval-Augmented Generation (RAG). Cách triển khai là dùng vector database (như pgvector) để lưu trữ tài liệu và source code; khi người dùng hỏi, hệ thống sẽ retrieve các đoạn code liên quan nhất để đưa vào ngữ cảnh trước khi gọi LLM.
 ---
 
 ## Danh Sách Kiểm Tra Nộp Bài
